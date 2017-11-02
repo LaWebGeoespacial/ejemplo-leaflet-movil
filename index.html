@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Ejemplo de mapa configurado para dispositivos móviles</title>
+
+    <meta charset="UTF-8" />
+    
+    <!-- Se le indica al navegador del dispositivo móvil que debe usar todo el ancho de la pantalla -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+	
+    <!-- Referencia a estilos personales -->
+    <link rel="stylesheet" href="css/estilos.css">
+
+    <!-- Referencia al código fuente y a los estilos de Leaflet -->
+    <script src="https://unpkg.com/leaflet@1.2.0/dist/leaflet.js" integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin=""></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.2.0/dist/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin=""/>
+	  
+    <!-- Referencia al código fuente y a los estilos del complemento MousePosition -->	 
+    <script type="text/javascript" src="https://cdn.rawgit.com/ardhi/Leaflet.MousePosition/master/src/L.Control.MousePosition.js"></script>
+    <link rel="stylesheet" href="https://cdn.rawgit.com/ardhi/Leaflet.MousePosition/master/src/L.Control.MousePosition.css"/>	  
+    
+     <!-- Referencia al complemento Leaflet-providers -->	 
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-providers/1.1.7/leaflet-providers.js"></script>
+    
+    
+  </head>
+
+  <body>
+    <h1>Población de los cantones de Costa Rica</h1>
+    <div id='map'></div>
+
+    <script src="js/Cantones2014wgs84.js" type="text/javascript"></script>
+
+    <script>
+      var mapa = L.map('map').setView([9.7, -84], 8);
+      
+      // Capa de tipo L.tileLayer definida con la sintaxis clásica
+      var osm  = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+        attribution: '<a href="http://www.openstreetmap.org/">OpenStreetMap</a>'
+      });
+      osm.addTo(mapa);
+      
+   
+      // retorna un color con base en la cantidad de pobladores
+      function color(d) {
+	      return d > 250000 ? '#67000d' :
+	             d > 200000 ? '#c5161b' :
+	             d > 150000 ? '#f44d37' :
+	             d > 100000 ? '#fc8f6f' :
+	             d >  50000 ? '#fdccb8' :
+		                        '#fff5f0';
+      }	    
+      
+      function infoCanton(feature, layer) {
+	      var popupContent = "Cantón: ";
+	      if (feature.properties && feature.properties.NCANTON) {
+	        popupContent += feature.properties.NCANTON;
+	      }	      
+	      if (feature.properties && feature.properties.POB_2011_T) {
+	        popupContent += ('<br>Población: ' + feature.properties.POB_2011_T);
+	      }
+	      layer.bindPopup(popupContent);
+      }	    	    
+	    
+      var canton = L.geoJson(cantones, {
+        style: function (feature) {
+	        return {
+	          weight: 2,
+	          opacity: 1,
+	          color: 'white',
+	          dashArray: '3',
+	          fillOpacity: 0.7,		  
+            fillColor: color(feature.properties.POB_2011_T)
+          };
+        },
+	            
+	      onEachFeature: infoCanton
+      })
+      canton.addTo(mapa);
+	    
+      var baseLayers = {
+	      "OpenStreetMap": osm
+      };
+      
+      var overlays = {
+	      "Cantones": canton
+      };
+      
+      L.control.layers(baseLayers, overlays, {collapsed : false}).addTo(mapa);
+	    
+      L.control.mousePosition().addTo(mapa);
+    </script>
+  </body>
+</html>
